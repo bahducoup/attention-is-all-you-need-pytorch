@@ -12,7 +12,7 @@ import torch
 import tarfile
 import torchtext.data
 import torchtext.datasets
-from torchtext.datasets import TranslationDataset
+from torchtext.legacy.datasets import TranslationDataset
 import transformer.Constants as Constants
 from learn_bpe import learn_bpe
 from apply_bpe import BPE
@@ -209,7 +209,7 @@ def main():
     sys.stderr.write(f"Done.\n")
 
 
-    field = torchtext.data.Field(
+    field = torchtext.legacy.data.Field(
         tokenize=str.split,
         lower=True,
         pad_token=Constants.PAD_WORD,
@@ -267,8 +267,8 @@ def main_wo_bpe():
     assert not any([opt.data_src, opt.data_trg]) or all([opt.data_src, opt.data_trg])
     print(opt)
 
-    src_lang_model = spacy.load(opt.lang_src)
-    trg_lang_model = spacy.load(opt.lang_trg)
+    src_lang_model = spacy.load(f'{opt.lang_src}_core_news_sm')
+    trg_lang_model = spacy.load(f'{opt.lang_trg}_core_web_sm')
 
     def tokenize_src(text):
         return [tok.text for tok in src_lang_model.tokenizer(text)]
@@ -276,11 +276,11 @@ def main_wo_bpe():
     def tokenize_trg(text):
         return [tok.text for tok in trg_lang_model.tokenizer(text)]
 
-    SRC = torchtext.data.Field(
+    SRC = torchtext.legacy.data.Field(
         tokenize=tokenize_src, lower=not opt.keep_case,
         pad_token=Constants.PAD_WORD, init_token=Constants.BOS_WORD, eos_token=Constants.EOS_WORD)
 
-    TRG = torchtext.data.Field(
+    TRG = torchtext.legacy.data.Field(
         tokenize=tokenize_trg, lower=not opt.keep_case,
         pad_token=Constants.PAD_WORD, init_token=Constants.BOS_WORD, eos_token=Constants.EOS_WORD)
 
@@ -296,7 +296,7 @@ def main_wo_bpe():
     def filter_examples_with_length(x):
         return len(vars(x)['src']) <= MAX_LEN and len(vars(x)['trg']) <= MAX_LEN
 
-    train, val, test = torchtext.datasets.Multi30k.splits(
+    train, val, test = torchtext.legacy.datasets.Multi30k.splits(
             exts = ('.' + opt.lang_src, '.' + opt.lang_trg),
             fields = (SRC, TRG),
             filter_pred=filter_examples_with_length)
